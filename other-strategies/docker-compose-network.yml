@@ -1,0 +1,123 @@
+version: '3.9'
+services:
+  server:
+    image: codeurjc/server:v1.0
+    ports:
+      - 3000:3000
+    environment:
+      # Enviroment variables for connect to MySQL
+      - MYSQL_HOST=mysql
+      - MYSQL_DB=eoloplantsDB
+      - MYSQL_USER=root
+      - MYSQL_PASS=password
+      # Enviroment variables for connect to RabbitMQ
+      - RABBITMQ_URL=amqp://root:password@rabbitmq
+    depends_on:
+      - mysql
+      - rabbitmq
+    command: bash -c "
+      ./wait-for-it.sh mysql:3306 --
+      ./wait-for-it.sh rabbitmq:5672 --
+      node src/server.js"
+    restart: on-failure
+    networks:
+      - my-app-network
+
+  weatherservice:
+    image: codeurjc/weatherservice:v1.0
+    ports:
+      - 9090:9090
+    environment:
+      # Enviroment variables to configure the listening of gRPC
+      - GRPC_HOST=weatherservice
+      - GRPC_PORT=9090
+    restart: on-failure
+    networks:
+      - my-app-network
+
+  planner:
+    image: codeurjc/planner:v1.0
+    environment:
+      # Enviroment variables for connect to TopoService
+      - TOPO_HOST=toposervice
+      - TOPO_PORT=8080
+      # Enviroment variables for connect to WeatherService
+      - GRPC_CLIENT_WEATHERSERVER_ADDRESS=static://weatherservice:9090
+      # Enviroment variables for connect to RabbitMQ
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=root
+      - SPRING_RABBITMQ_PASSWORD=password
+    depends_on:
+      - weatherservice
+      - toposervice
+      - rabbitmq
+    restart: on-failure
+    networks:
+      - my-app-network
+
+  toposervice:
+    image: codeurjc/toposervice:v1.0
+    ports:
+      - 8080:8080
+    environment:
+      # Enviroment variables for connect to MongoDB
+      - SPRING_DATA_MONGODB_HOST=mongodb
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_DATABASE=topoDB
+      - SPRING_DATA_MONGODB_AUTHENTICATION-DATABASE=admin
+      - SPRING_DATA_MONGODB_USERNAME=root
+      - SPRING_DATA_MONGODB_PASSWORD=password
+    depends_on:
+      - mongodb
+    restart: on-failure
+    networks:
+      - my-app-network
+
+  mysql:
+    image: mysql:8.0.28
+    ports:
+      - 3306:3306
+    environment:
+      # Enviroment variables for securize MySQL and create default Database
+      - MYSQL_DATABASE=eoloplantsDB
+      - MYSQL_ROOT_PASSWORD=password
+    volumes:
+      - ./mysql_db:/var/lib/mysql
+    restart: always
+    networks:
+      - my-app-network
+
+  mongodb:
+    image: mongo:5.0.6-focal
+    ports:
+      - 27017-27019:27017-27019
+    environment:
+      # Enviroment variables for securize MongoDB
+      - MONGO_INITDB_DATABASE=topoDB
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - ./mongo_db:/data/db
+    restart: always
+    networks:
+      - my-app-network
+
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      # Enviroment variables for securize RabbitMQ
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=password
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    restart: always
+    networks:
+      - my-app-network
+
+networks:
+  my-app-network:
+    driver: bridge

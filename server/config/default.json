@@ -1,0 +1,11 @@
+{
+  "amqp": {
+    "url": "amqp://guest:guest@localhost",
+    "queues": {
+      "progress": "eoloplantCreationProgressNotifications",
+      "creation": "eoloplantCreationRequests"
+    },
+    "options": {"durable": true}
+  },
+  "broker": "rabbit"
+}

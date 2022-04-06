@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planner-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: planner
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: planner
+        dns-policy: enabled
+    spec:
+      securityContext:
+        runAsUser: 1001
+      restartPolicy: Always
+      containers:
+      - name: planner
+        image: codeurjc/planner:v1.0
+        env:
+        - name: TOPO_HOST
+          value: toposervice-service
+        - name: TOPO_PORT
+          value: "8181"
+        - name: GRPC_CLIENT_WEATHERSERVER_ADDRESS
+          value: static://weatherservice-service:9090
+        - name: SPRING_CLOUD_STREAM_RABBIT_BINDER_NODES
+          value: rabbitmq-service:5672
+        - name: SPRING_RABBITMQ_HOST
+          value: rabbitmq-service
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          value: root
+        - name: SPRING_RABBITMQ_PASSWORD
+          value: password
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: planner-to-rabbit-weather-topo
+spec:
+  podSelector:
+    matchLabels:
+      app: planner
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: rabbitmq
+    ports:
+    - port: 5672
+      protocol: TCP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: weatherservice
+    ports:
+    - port: 9090
+      protocol: TCP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: toposervice
+    ports:
+    - port: 8081
+      protocol: TCP

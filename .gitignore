@@ -1,0 +1,20 @@
+# Ignore database folders
+mongo_db/
+mongo_db_dev/
+mysql_db/
+mysql_db_dev/
+rabbitmq/
+rabbitmq_dev/
+
+### Java Projects
+**/!**/src/main/**
+**/!**/src/test/**
+**/target/
+**/.settings
+**/.classpath
+**/.project
+**/.factorypath
+
+
+#### Node Services
+**/node_modules/

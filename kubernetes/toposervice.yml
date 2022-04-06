@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toposervice-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: toposervice
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: toposervice
+        dns-policy: enabled
+    spec:
+      securityContext:
+        runAsUser: 1001
+      restartPolicy: Always
+      containers:
+      - name: toposervice
+        image: codeurjc/toposervice:v1.0
+        env:
+        - name: SPRING_DATA_MONGODB_HOST
+          value: mongodb-service
+        - name: SPRING_DATA_MONGODB_PORT
+          value: "27017"
+        - name: SPRING_DATA_MONGODB_DATABASE
+          value: topoDB
+        - name: SPRING_DATA_MONGODB_AUTHENTICATION-DATABASE
+          value: admin
+        - name: SPRING_DATA_MONGODB_USERNAME
+          value: root
+        - name: SPRING_DATA_MONGODB_PASSWORD
+          value: password
+        ports:
+        - containerPort: 8181
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: toposervice-service
+  labels:
+    app: toposervice
+spec:
+  ports:
+  - port: 8181
+    targetPort: 8181
+    protocol: TCP
+    name: topo-port
+  selector:
+    app: toposervice
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: topo-to-mongodb
+spec:
+  podSelector:
+    matchLabels:
+      app: toposervice
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - port: 27017
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: topo-from-planner-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: toposervice
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: planner
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8181

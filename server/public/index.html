@@ -1,0 +1,46 @@
+<html>
+<head>
+    <link href="bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet">
+    <link href="icons/solid.min.css" rel="stylesheet">
+    <link href="icons/fontawesome.min.css" rel="stylesheet">
+    <script src="bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="client.js"></script>
+    <meta name="theme-color" content="#7952b3">
+    <title>Eolo Planner</title>
+    <script defer src="icons/solid.min.js"></script>
+</head>
+
+
+<body class="d-flex text-center text-white bg-dark">
+
+<div class="cover-container d-flex w-100 p-3 mx-auto flex-column">
+    <header class="mb-auto">
+        <div>
+            <h3 class="float-md-start mb-0">Eolo Planner</h3>
+        </div>
+    </header>
+
+    <main class="px-3">
+        <h1>Create a new plant</h1>
+        <p class="lead">Type a city to create a new plant.</p>
+        <p class="lead">Current cities in DB: Madrid, Barcelona, Jaca, Andorra, Valencia, Sevilla, Zaragoza, Málaga, Murcia, Palma, Bilbao, Alicante, Córdoba, Valladolid, Vigo, Gijón, Vitoria.</p>
+        <form class="card p-2 bg-dark" onsubmit="createPlant();return false">
+            <div class="input-group">
+                <input type="text" id="city" class="form-control" placeholder="City" value="Sevilla">
+                <button type="submit" id="generate" class="btn btn-secondary fw-bold text-white">Generate</button><img id="creationSpinner" src="icons/spinning-loading.gif" style="display: none; height: 40px; "/>
+            </div>
+        </form>
+        <h1 id="plants-title">Eolo Plants</h1>
+        <div id="plants" class="row row-cols-1 row-cols-md-3 mb-3 text-center text-dark"></div>
+    </main>
+
+    <footer class="mt-auto text-white-50">
+        <p>Made with love for <a target="_blank" href="https://www.codeurjc.es/mastercloudapps/" class="text-white">MasterCloudApps</a>,
+            based on <a target="_blank" href="https://twitter.com/sanguinoide" class="text-white">@sanguinoide</a> project.</p>
+    </footer>
+</div>
+
+
+</body>
+</html>
