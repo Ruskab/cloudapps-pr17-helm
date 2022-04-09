@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "weatherservice.app" . }}-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "weatherservice.app" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "weatherservice.app" . }}
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.weatherservice.user }}
+      restartPolicy: Always
+      containers:
+      - name: {{ include "weatherservice.app" . }}
+        image: codeurjc/weatherservice:v1.0
+        env:
+        - name: GRPC_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: GRPC_PORT
+          value: {{ .Values.weatherservice.port | quote }}
+        ports:
+        - containerPort: {{ .Values.weatherservice.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "weatherservice.app" . }}-service
+  labels:
+    app: {{ include "weatherservice.app" . }}
+spec:
+  ports:
+  - port: {{ .Values.weatherservice.port }}
+    targetPort: {{ .Values.weatherservice.port }}
+    protocol: TCP
+    name: {{ include "weatherservice.app" . }}-port
+  selector:
+    app: {{ include "weatherservice.app" . }}
+  type: {{ .Values.weatherservice.type }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-weather-from-planner
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "weatherservice.app" . }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ include "planner.app" . }}
+    ports:
+    - port: {{ .Values.weatherservice.port }}
+      protocol: TCP

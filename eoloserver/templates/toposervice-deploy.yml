@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "toposervice.app" . }}-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "toposervice.app" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "toposervice.app" . }}
+        dns-policy: enabled
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.toposervice.user }}
+      restartPolicy: Always
+      containers:
+      - name: {{ include "toposervice.app" . }}
+        image: codeurjc/toposervice:v1.0
+        env:
+        - name: SPRING_DATA_MONGODB_HOST
+          value: {{ include "mongodb.app" . }}-service
+        - name: SPRING_DATA_MONGODB_PORT
+          value: {{ .Values.mongodb.port1 | quote }}
+        - name: SPRING_DATA_MONGODB_DATABASE
+          value: {{ .Values.mongodb.database }}
+        - name: SPRING_DATA_MONGODB_AUTHENTICATION-DATABASE
+          value: {{ .Values.mongodb.authenticationDatabase }}
+        - name: SPRING_DATA_MONGODB_USERNAME
+          value: {{ .Values.mongodb.rootUsername }}
+        - name: SPRING_DATA_MONGODB_PASSWORD
+          value: {{ .Values.mongodb.rootPassword }}
+        ports:
+        - containerPort: {{ .Values.toposervice.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "toposervice.app" . }}-service
+  labels:
+    app: {{ include "toposervice.app" . }}
+spec:
+  ports:
+  - port: {{ .Values.toposervice.port }}
+    targetPort: {{ .Values.toposervice.port }}
+    protocol: TCP
+    name: {{ include "toposervice.app" . }}-port
+  selector:
+    app: {{ include "toposervice.app" . }}
+  type: {{ .Values.toposervice.type }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "toposervice.app" . }}-to-{{ include "mongodb.app" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "toposervice.app" . }}
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: {{ include "mongodb.app" . }}
+    ports:
+    - port: {{ .Values.mongodb.port1 }}
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: topo-from-planner-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "toposervice.app" . }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ include "planner.app" . }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: {{ .Values.toposervice.port }}

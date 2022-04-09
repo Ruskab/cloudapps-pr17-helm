@@ -1,0 +1,104 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mongodb.app" . }}-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "mongodb.app" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "mongodb.app" . }}
+    spec:
+      containers:
+      - name: {{ include "mongodb.app" . }}
+        image: mongo:5.0.6-focal
+        env:
+        - name: MONGO_INITDB_DATABASE
+          value: {{ .Values.mongodb.database }}
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: {{ .Values.mongodb.rootUsername }}
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: {{ .Values.mongodb.rootPassword }}
+        ports:
+        - containerPort: {{ .Values.mongodb.port1 }}
+        - containerPort: {{ .Values.mongodb.port2 }}
+        - containerPort: {{ .Values.mongodb.port3 }}
+        volumeMounts:
+        - mountPath: {{ .Values.mongodb.mountPath }}
+          name: {{ include "mongodb.app" . }}-datadb
+      volumes:
+      - name: {{ include "mongodb.app" . }}-datadb
+        persistentVolumeClaim:
+          claimName: {{ include "mongodb.app" . }}-pvc
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "mongodb.app" . }}-pv
+spec:
+  storageClassName: {{ .Values.mongodb.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /db/mongo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mongodb.app" . }}-pvc
+spec:
+  storageClassName: {{ .Values.mongodb.storageClass }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mongodb.app" . }}-service
+  labels:
+    app: {{ include "mongodb.app" . }}
+spec:
+  ports:
+  - port: {{ .Values.mongodb.port1 }}
+    targetPort: {{ .Values.mongodb.port1 }}
+    protocol: TCP
+    name: {{ include "mongodb.app" . }}-port-27017
+  - port: {{ .Values.mongodb.port2 }}
+    targetPort: {{ .Values.mongodb.port2 }}
+    protocol: TCP
+    name: {{ include "mongodb.app" . }}-port-27018
+  - port: {{ .Values.mongodb.port3 }}
+    targetPort: {{ .Values.mongodb.port3 }}
+    protocol: TCP
+    name: {{ include "mongodb.app" . }}-port-27019
+  selector:
+    app: {{ include "mongodb.app" . }}
+  type: {{ .Values.mongodb.type }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "mongodb.app" . }}-from-topo
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "mongodb.app" . }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ include "toposervice.app" . }}
+    ports:
+    - port: {{ .Values.mongodb.port1 }}
+      protocol: TCP

@@ -1,0 +1,92 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mysql.app" . }}-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "mysql.app" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "mysql.app" . }}
+    spec:
+      containers:
+      - name: {{ include "mysql.app" . }}
+        image: mysql:8.0.28
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.mysql.mysqlRootPassword }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.mysql.mysqlDatabase }}
+        ports:
+        - containerPort: {{ .Values.mysql.port }}
+        volumeMounts:
+        - mountPath: {{ .Values.mysql.mountPath }}
+          name: {{ include "mysql.app" . }}-datadb
+      volumes:
+      - name: {{ include "mysql.app" . }}-datadb
+        persistentVolumeClaim:
+          claimName: {{ include "mysql.app" . }}-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mysql.app" . }}-pvc
+spec:
+  storageClassName: {{ .Values.mysql.storageClass }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "mysql.app" . }}-pv
+spec:
+  storageClassName: {{ .Values.mysql.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /db/mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mysql.app" . }}-service
+  labels:
+    app: {{ include "mysql.app" . }}
+spec:
+  ports:
+  - port: {{ .Values.mysql.port }}
+    targetPort: {{ .Values.mysql.port }}
+    protocol: TCP
+    name: {{ include "mysql.app" . }}-port
+  selector:
+    app: {{ include "mysql.app" . }}
+  type: {{ .Values.mysql.type }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "mysql.app" . }}-from-{{ include "server.app" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "mysql.app" . }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ include "server.app" . }}
+    ports:
+    - port: {{ .Values.mysql.port }}
+      protocol: TCP

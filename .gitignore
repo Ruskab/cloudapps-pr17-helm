@@ -18,3 +18,4 @@ rabbitmq_dev/
 
 #### Node Services
 **/node_modules/
+/.idea/

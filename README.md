@@ -1,6 +1,12 @@
+
 # Comandos utiles 
 
 ````shell
+
+kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
+
+
+
 # volume local dir with the container
 minikube mount /pod-data:/pod-data
 # open port to access from local

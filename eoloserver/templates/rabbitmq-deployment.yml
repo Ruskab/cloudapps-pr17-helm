@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rabbitmq.app" . }}-deploy
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ include "rabbitmq.app" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "rabbitmq.app" . }}
+    spec:
+      containers:
+      - name: {{ include "rabbitmq.app" . }}
+        image: rabbitmq:3.9-management
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: {{ .Values.rabbitmq.rabbitmqDefaultUser }}
+        - name: RABBITMQ_DEFAULT_PASS
+          value: {{ .Values.rabbitmq.rabbitmqDefaultPass }}
+        ports:
+        - containerPort: {{ .Values.rabbitmq.port1 }}
+        - containerPort: {{ .Values.rabbitmq.port2 }}
+        volumeMounts:
+        - mountPath: {{ .Values.rabbitmq.mountPath }}
+          name: {{ include "rabbitmq.app" . }}-datarabbit
+      volumes:
+      - name: {{ include "rabbitmq.app" . }}-datarabbit
+        persistentVolumeClaim:
+          claimName: {{ include "rabbitmq.app" . }}-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "rabbitmq.app" . }}-pvc
+spec:
+  storageClassName: {{ .Values.rabbitmq.storageClass }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "rabbitmq.app" . }}-pv
+spec:
+  storageClassName: {{ .Values.rabbitmq.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /db/rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rabbitmq.app" . }}-service
+  labels:
+    app: {{ include "rabbitmq.app" . }}
+spec:
+  ports:
+  - port: {{ .Values.rabbitmq.port1 }}
+    targetPort: {{ .Values.rabbitmq.port1 }}
+    protocol: TCP
+    name: rabbitmq-port-{{ .Values.rabbitmq.port1 }}
+  - port: {{ .Values.rabbitmq.port2 }}
+    targetPort: {{ .Values.rabbitmq.port2 }}
+    protocol: TCP
+    name: rabbitmq-port-{{ .Values.rabbitmq.port2 }}
+  selector:
+    app: {{ include "rabbitmq.app" . }}
+  type: {{ .Values.rabbitmq.type }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "rabbitmq.app" . }}-from-{{ include "planner.app" . }}-{{ include "server.app" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "rabbitmq.app" . }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ include "planner.app" . }}
+    - podSelector:
+        matchLabels:
+          app: {{ include "server.app" . }}
+    ports:
+    - port: {{ .Values.rabbitmq.port1 }}
+      protocol: TCP
