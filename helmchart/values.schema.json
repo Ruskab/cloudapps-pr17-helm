@@ -1,0 +1,285 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/Welcome2",
+  "definitions": {
+    "Welcome2": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mysqlImage": {
+          "type": "string"
+        },
+        "mysqlTag": {
+          "type": "string"
+        },
+        "mongoImage": {
+          "type": "string"
+        },
+        "mongoTag": {
+          "type": "string"
+        },
+        "plannerImage": {
+          "type": "string"
+        },
+        "plannerTag": {
+          "type": "string"
+        },
+        "rabbitmqImage": {
+          "type": "string"
+        },
+        "rabbitmqTag": {
+          "type": "string"
+        },
+        "serverImage": {
+          "type": "string"
+        },
+        "serverTag": {
+          "type": "string"
+        },
+        "topoServiceImage": {
+          "type": "string"
+        },
+        "topoServiceTag": {
+          "type": "string"
+        },
+        "weathServiceImage": {
+          "type": "string"
+        },
+        "weathServiceTag": {
+          "type": "string"
+        },
+        "mysql": {
+          "$ref": "#/definitions/Mysql"
+        },
+        "mongodb": {
+          "$ref": "#/definitions/Mongodb"
+        },
+        "rabbitmq": {
+          "$ref": "#/definitions/Rabbitmq"
+        },
+        "weatherservice": {
+          "$ref": "#/definitions/Server"
+        },
+        "toposervice": {
+          "$ref": "#/definitions/Server"
+        },
+        "planner": {
+          "$ref": "#/definitions/Planner"
+        },
+        "server": {
+          "$ref": "#/definitions/Server"
+        },
+        "ingress": {
+          "$ref": "#/definitions/Ingress"
+        },
+        "replicaCount": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "ingress",
+        "mongoImage",
+        "mongoTag",
+        "mongodb",
+        "mysql",
+        "mysqlImage",
+        "mysqlTag",
+        "planner",
+        "plannerImage",
+        "plannerTag",
+        "rabbitmq",
+        "rabbitmqImage",
+        "rabbitmqTag",
+        "replicaCount",
+        "server",
+        "serverImage",
+        "serverTag",
+        "topoServiceImage",
+        "topoServiceTag",
+        "toposervice",
+        "weathServiceImage",
+        "weathServiceTag",
+        "weatherservice"
+      ],
+      "title": "Welcome2"
+    },
+    "Ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled",
+        "host"
+      ],
+      "title": "Ingress"
+    },
+    "Mongodb": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "database": {
+          "type": "string"
+        },
+        "rootUsername": {
+          "type": "string"
+        },
+        "rootPassword": {
+          "type": "string"
+        },
+        "authenticationDatabase": {
+          "type": "string"
+        },
+        "port1": {
+          "type": "integer"
+        },
+        "port2": {
+          "type": "integer"
+        },
+        "port3": {
+          "type": "integer"
+        },
+        "mountPath": {
+          "type": "string"
+        },
+        "storageClass": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "authenticationDatabase",
+        "database",
+        "mountPath",
+        "port1",
+        "port2",
+        "port3",
+        "rootPassword",
+        "rootUsername",
+        "storageClass",
+        "type"
+      ],
+      "title": "Mongodb"
+    },
+    "Mysql": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "mysqlRootPassword": {
+          "type": "string"
+        },
+        "mysqlRootUser": {
+          "type": "string"
+        },
+        "mysqlDatabase": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "mountPath": {
+          "type": "string"
+        },
+        "storageClass": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "mountPath",
+        "mysqlDatabase",
+        "mysqlRootPassword",
+        "mysqlRootUser",
+        "port",
+        "storageClass",
+        "type"
+      ],
+      "title": "Mysql"
+    },
+    "Planner": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "user"
+      ],
+      "title": "Planner"
+    },
+    "Rabbitmq": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "app": {
+          "type": "string"
+        },
+        "port1": {
+          "type": "integer"
+        },
+        "port2": {
+          "type": "integer"
+        },
+        "rabbitmqDefaultUser": {
+          "type": "string"
+        },
+        "rabbitmqDefaultPass": {
+          "type": "string"
+        },
+        "mountPath": {
+          "type": "string"
+        },
+        "storageClass": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "app",
+        "mountPath",
+        "port1",
+        "port2",
+        "rabbitmqDefaultPass",
+        "rabbitmqDefaultUser",
+        "storageClass",
+        "type"
+      ],
+      "title": "Rabbitmq"
+    },
+    "Server": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user": {
+          "type": "integer"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "port",
+        "type",
+        "user"
+      ],
+      "title": "Server"
+    }
+  }
+}

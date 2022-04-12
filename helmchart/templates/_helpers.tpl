@@ -1,41 +1,12 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "eoloserver.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
 
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "eoloserver.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{- define "weatherservice.fullname" -}}
-{{- if .Values.fullnameOverride -}}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
 
 {{/*
 Create chart name and version as used by the chart label.
@@ -59,55 +30,43 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "eoloserver.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "eoloserver.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "eoloserver.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "eoloserver.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
 
 
 {{- define "weatherservice.app" -}}
-{{- printf "%s-weatherservice" .Release.Name }}
+{{- printf "%s-weatherservice" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "planner.app" -}}
-{{- printf "%s-planner" .Release.Name }}
+{{- printf "%s-planner" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "server.app" -}}
-{{- printf "%s-server" .Release.Name }}
+{{- printf "%s-server" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "toposervice.app" -}}
-{{- printf "%s-toposervice" .Release.Name }}
+{{- printf "%s-toposervice" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "mongodb.app" -}}
-{{- printf "%s-mongodb" .Release.Name }}
+{{- printf "%s-mongodb" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "mysql.app" -}}
-{{- printf "%s-mysql" .Release.Name }}
+{{- printf "%s-mysql" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 
 {{- define "rabbitmq.app" -}}
-{{- printf "%s-rabbitmq" .Release.Name }}
+{{- printf "%s-rabbitmq" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 
 {{- define "mongodb.storageClass" -}}
-{{- printf "%s-mongodb" .Release.Name }}
+{{- printf "%s-mongodb" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 

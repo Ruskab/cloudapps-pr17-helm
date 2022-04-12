@@ -17,12 +17,10 @@ spec:
     spec:
       containers:
       - name: {{ include "mysql.app" . }}
-        image: mysql:8.0.28
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.mysql.mysqlRootPassword }}
-        - name: MYSQL_DATABASE
-          value: {{ .Values.mysql.mysqlDatabase }}
+        image: "{{ .Values.mysqlImage }}:{{ .Values.mysqlTag }}"
+        envFrom:
+          - configMapRef:
+              name: {{ include "mysql.app" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mysql.port }}
         volumeMounts:

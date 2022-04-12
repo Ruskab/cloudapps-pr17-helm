@@ -21,7 +21,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: {{ include "planner.app" . }}
-        image: codeurjc/planner:v1.0
+        image: "{{ .Values.plannerImage }}:{{ .Values.plannerTag }}"
         env:
         - name: TOPO_HOST
           value: {{ include "toposervice.app" . }}-service

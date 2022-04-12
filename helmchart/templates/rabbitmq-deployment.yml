@@ -17,12 +17,10 @@ spec:
     spec:
       containers:
       - name: {{ include "rabbitmq.app" . }}
-        image: rabbitmq:3.9-management
-        env:
-        - name: RABBITMQ_DEFAULT_USER
-          value: {{ .Values.rabbitmq.rabbitmqDefaultUser }}
-        - name: RABBITMQ_DEFAULT_PASS
-          value: {{ .Values.rabbitmq.rabbitmqDefaultPass }}
+        image: "{{ .Values.rabbitmqImage }}:{{ .Values.rabbitmqTag }}"
+        envFrom:
+          - configMapRef:
+              name: {{ include "rabbitmq.app" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.rabbitmq.port1 }}
         - containerPort: {{ .Values.rabbitmq.port2 }}

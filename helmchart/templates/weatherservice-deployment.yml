@@ -20,7 +20,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: {{ include "weatherservice.app" . }}
-        image: codeurjc/weatherservice:v1.0
+        image: "{{ .Values.weathServiceImage }}:{{ .Values.weathServiceTag }}"
         env:
         - name: GRPC_HOST
           valueFrom:

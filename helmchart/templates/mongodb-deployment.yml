@@ -17,14 +17,10 @@ spec:
     spec:
       containers:
       - name: {{ include "mongodb.app" . }}
-        image: mongo:5.0.6-focal
-        env:
-        - name: MONGO_INITDB_DATABASE
-          value: {{ .Values.mongodb.database }}
-        - name: MONGO_INITDB_ROOT_USERNAME
-          value: {{ .Values.mongodb.rootUsername }}
-        - name: MONGO_INITDB_ROOT_PASSWORD
-          value: {{ .Values.mongodb.rootPassword }}
+        image: "{{ .Values.mongoImage }}:{{ .Values.mongoTag }}"
+        envFrom:
+          - configMapRef:
+              name: {{ include "mongodb.app" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}

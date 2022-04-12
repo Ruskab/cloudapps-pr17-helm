@@ -21,7 +21,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: {{ include "server.app" . }}
-        image: codeurjc/server:v1.0
+        image: "{{ .Values.serverImage }}:{{ .Values.serverTag }}"
         command: ["bash"]
         args:
         - "-c"
@@ -30,11 +30,17 @@ spec:
         - name: MYSQL_HOST
           value: {{ include "mysql.app" . }}-service
         - name: MYSQL_DB
-          value: {{ .Values.mysql.mysqlDatabase }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "mysql.app" . }}-env-config-map
+              key: MYSQL_DATABASE
         - name: MYSQL_USER
           value: {{ .Values.mysql.mysqlRootUser }}
         - name: MYSQL_PASS
-          value: {{ .Values.mysql.mysqlRootPassword }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "mysql.app" . }}-env-config-map
+              key: MYSQL_ROOT_PASSWORD
         - name: RABBITMQ_URL
           value: amqp://{{ .Values.rabbitmq.rabbitmqDefaultUser }}:{{ .Values.rabbitmq.rabbitmqDefaultPass }}@{{ include "rabbitmq.app" . }}-service
         ports:

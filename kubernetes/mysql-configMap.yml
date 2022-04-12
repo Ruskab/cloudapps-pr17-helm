@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-env-config-map
+data:
+  MYSQL_ROOT_PASSWORD: "password"
+  MYSQL_DATABASE: "eoloplantsDB"

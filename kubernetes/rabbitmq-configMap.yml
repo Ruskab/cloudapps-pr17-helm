@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-env-config-map
+data:
+  RABBITMQ_DEFAULT_USER: "root"
+  RABBITMQ_DEFAULT_PASS: "password"
+
