@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "mysql.name" . }}
+  name: {{ template "mysql.fullname" . }}
   labels:
     app: {{ template "mysql.name" . }}
     chart: {{ template "mysql.chart" . }}
@@ -23,25 +23,25 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ include "mysql.name" . }}
+      - name: {{ include "mysql.fullname" . }}
         image: "{{ .Values.mysqlImage }}:{{ .Values.mysqlTag }}"
         envFrom:
           - configMapRef:
-              name: {{ include "mysql.name" . }}-env-config-map
+              name: {{ include "mysql.fullname" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mysql.port }}
         volumeMounts:
         - mountPath: {{ .Values.mysql.mountPath }}
-          name: {{ include "mysql.name" . }}-datadb
+          name: {{ include "mysql.fullname" . }}-datadb
       volumes:
-      - name: {{ include "mysql.name" . }}-datadb
+      - name: {{ include "mysql.fullname" . }}-datadb
         persistentVolumeClaim:
-          claimName: {{ include "mysql.name" . }}-pvc
+          claimName: {{ include "mysql.fullname" . }}-pvc
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mysql.name" . }}-pvc
+  name: {{ include "mysql.fullname" . }}-pvc
   labels:
     app: {{ template "mysql.name" . }}
     chart: {{ template "mysql.chart" . }}
@@ -58,7 +58,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "mysql.name" . }}-pv
+  name: {{ include "mysql.fullname" . }}-pv
   labels:
     type: local
     app: {{ template "mysql.name" . }}
@@ -77,7 +77,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "mysql.name" . }}
+  name: {{ template "mysql.fullname" . }}
   labels:
     app: {{ template "mysql.name" . }}
     chart: {{ template "mysql.chart" . }}
@@ -88,7 +88,7 @@ spec:
   - port: {{ .Values.mysql.port }}
     targetPort: {{ .Values.mysql.port }}
     protocol: TCP
-    name: {{ include "mysql.name" . }}-port
+    name: {{ include "mysql.fullname" . }}-port
   selector:
     app: {{ template "mysql.name" . }}
     release: {{ .Release.Name }}
@@ -97,7 +97,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "mysql.name" . }}-from-{{ include "server.name" . }}
+  name: {{ include "mysql.fullname" . }}-from-{{ include "server.name" . }}
   labels:
     app: {{ template "mysql.name" . }}
     chart: {{ template "mysql.chart" . }}
