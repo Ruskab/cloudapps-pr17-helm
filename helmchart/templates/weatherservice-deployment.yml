@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "weatherservice.name" . }}
+  name: {{ include "weatherservice.fullname" . }}
   labels:
     app: {{ template "weatherservice.name" . }}
     chart: {{ template "weatherservice.chart" . }}
@@ -14,6 +14,7 @@ spec:
   selector:
     matchLabels:
       app: {{ include "weatherservice.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
@@ -40,7 +41,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "weatherservice.name" . }}
+  name: {{ include "weatherservice.fullname" . }}
   labels:
     app: {{ template "weatherservice.name" . }}
     chart: {{ template "weatherservice.chart" . }}
@@ -51,15 +52,16 @@ spec:
   - port: {{ .Values.weatherservice.port }}
     targetPort: {{ .Values.weatherservice.port }}
     protocol: TCP
-    name: {{ include "weatherservice.name" . }}-port
+    name: {{ include "weatherservice.fullname" . }}-port
   selector:
     app: {{ include "weatherservice.name" . }}
+    release: {{ .Release.Name }}
   type: {{ .Values.weatherservice.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "weatherservice.name" . }}-from-{{ include "planner.name" . }}
+  name: {{ include "weatherservice.fullname" . }}-from-{{ include "planner.name" . }}
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}

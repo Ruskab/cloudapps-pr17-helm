@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "toposervice.name" . }}
+  name: {{ include "toposervice.fullname" . }}
   labels:
     app: {{ template "toposervice.name" . }}
     chart: {{ template "toposervice.chart" . }}
@@ -27,7 +27,7 @@ spec:
         runAsUser: {{ .Values.toposervice.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "toposervice.name" . }}
+      - name: {{ include "toposervice.fullname" . }}
         image: "{{ .Values.topoServiceImage }}:{{ .Values.topoServiceTag }}"
         env:
         - name: SPRING_DATA_MONGODB_HOST
@@ -50,7 +50,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "toposervice.name" . }}
+  name: {{ include "toposervice.fullname" . }}
   labels:
     app: {{ template "toposervice.name" . }}
     chart: {{ template "toposervice.chart" . }}
@@ -61,7 +61,7 @@ spec:
   - port: {{ .Values.toposervice.port }}
     targetPort: {{ .Values.toposervice.port }}
     protocol: TCP
-    name: {{ include "toposervice.name" . }}-port
+    name: {{ include "toposervice.fullname" . }}-port
   selector:
     app: {{ include "toposervice.name" . }}
     release: {{ .Release.Name }}
@@ -70,7 +70,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "toposervice.name" . }}-to-{{ include "mongodb.fullname" . }}
+  name: {{ include "toposervice.fullname" . }}-to-{{ include "mongodb.fullname" . }}
 spec:
   podSelector:
     matchLabels:
@@ -89,7 +89,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "toposervice.name" . }}-from-{{ include "planner.name" . }}-ingress
+  name: {{ include "toposervice.fullname" . }}-from-{{ include "planner.name" . }}-ingress
 spec:
   podSelector:
     matchLabels:

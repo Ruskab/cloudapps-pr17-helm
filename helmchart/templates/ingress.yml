@@ -25,6 +25,6 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "toposervice.name" . }}
+                name: {{ include "toposervice.fullname" . }}
                 port:
                   number: {{ .Values.toposervice.port }}
