@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny
+  name: default-{{ template "deny.fullname" . }}
   labels:
     app: {{ template "deny.name" . }}
     chart: {{ template "deny.chart" . }}
@@ -19,11 +19,17 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: dns-egress
+  name: {{ template "dnsegress.fullname" . }}
+  labels:
+    app: {{ template "dnsegress.name" . }}
+    chart: {{ template "dnsegress.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
       dns-policy: enabled
+      release: {{ .Release.Name }}
   egress:
   - ports:
     - port: 53
