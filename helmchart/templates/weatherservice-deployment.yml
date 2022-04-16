@@ -2,24 +2,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "weatherservice.app" . }}-deploy
+  name: {{ include "weatherservice.name" . }}
+  labels:
+    app: {{ template "weatherservice.name" . }}
+    chart: {{ template "weatherservice.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "weatherservice.app" . }}
+      app: {{ include "weatherservice.name" . }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "weatherservice.app" . }}
+        app: {{ include "weatherservice.name" . }}
+        release: {{ .Release.Name }}
     spec:
       securityContext:
         runAsUser: {{ .Values.weatherservice.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "weatherservice.app" . }}
+      - name: {{ include "weatherservice.name" . }}
         image: "{{ .Values.weathServiceImage }}:{{ .Values.weathServiceTag }}"
         env:
         - name: GRPC_HOST
@@ -34,32 +40,42 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "weatherservice.app" . }}-service
+  name: {{ include "weatherservice.name" . }}
   labels:
-    app: {{ include "weatherservice.app" . }}
+    app: {{ template "weatherservice.name" . }}
+    chart: {{ template "weatherservice.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.weatherservice.port }}
     targetPort: {{ .Values.weatherservice.port }}
     protocol: TCP
-    name: {{ include "weatherservice.app" . }}-port
+    name: {{ include "weatherservice.name" . }}-port
   selector:
-    app: {{ include "weatherservice.app" . }}
+    app: {{ include "weatherservice.name" . }}
   type: {{ .Values.weatherservice.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-weather-from-planner
+  name: {{ include "weatherservice.name" . }}-from-{{ include "planner.name" . }}
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "weatherservice.app" . }}
+      app: {{ include "weatherservice.name" . }}
+      release: {{ .Release.Name }}
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "planner.app" . }}
+          app: {{ include "planner.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.weatherservice.port }}
       protocol: TCP

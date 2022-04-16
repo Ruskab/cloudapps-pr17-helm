@@ -2,40 +2,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "rabbitmq.app" . }}-deploy
+  name: {{ include "rabbitmq.name" . }}
+  labels:
+    app: {{ template "rabbitmq.name" . }}
+    chart: {{ template "rabbitmq.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "rabbitmq.app" . }}
+      app: {{ include "rabbitmq.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "rabbitmq.app" . }}
+        app: {{ template "rabbitmq.name" . }}
+        release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ include "rabbitmq.app" . }}
+      - name: {{ include "rabbitmq.name" . }}
         image: "{{ .Values.rabbitmqImage }}:{{ .Values.rabbitmqTag }}"
         envFrom:
           - configMapRef:
-              name: {{ include "rabbitmq.app" . }}-env-config-map
+              name: {{ include "rabbitmq.name" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.rabbitmq.port1 }}
         - containerPort: {{ .Values.rabbitmq.port2 }}
         volumeMounts:
         - mountPath: {{ .Values.rabbitmq.mountPath }}
-          name: {{ include "rabbitmq.app" . }}-datarabbit
+          name: {{ include "rabbitmq.name" . }}-datarabbit
       volumes:
-      - name: {{ include "rabbitmq.app" . }}-datarabbit
+      - name: {{ include "rabbitmq.name" . }}-datarabbit
         persistentVolumeClaim:
-          claimName: {{ include "rabbitmq.app" . }}-pvc
+          claimName: {{ include "rabbitmq.name" . }}-pvc
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "rabbitmq.app" . }}-pvc
+  name: {{ include "rabbitmq.name" . }}-pvc
+  labels:
+    app: {{ template "rabbitmq.name" . }}
+    chart: {{ template "rabbitmq.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
 spec:
   storageClassName: {{ .Values.rabbitmq.storageClass }}
   accessModes:
@@ -47,7 +59,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "rabbitmq.app" . }}-pv
+  name: {{ include "rabbitmq.name" . }}-pv
+  labels:
+    app: {{ template "rabbitmq.name" . }}
+    chart: {{ template "rabbitmq.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
 spec:
   storageClassName: {{ .Values.rabbitmq.storageClass }}
   accessModes:
@@ -60,9 +77,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "rabbitmq.app" . }}-service
+  name: {{ include "rabbitmq.name" . }}
   labels:
-    app: {{ include "rabbitmq.app" . }}
+    app: {{ template "rabbitmq.name" . }}
+    chart: {{ template "rabbitmq.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.rabbitmq.port1 }}
@@ -74,25 +94,34 @@ spec:
     protocol: TCP
     name: rabbitmq-port-{{ .Values.rabbitmq.port2 }}
   selector:
-    app: {{ include "rabbitmq.app" . }}
+    app: {{ include "rabbitmq.name" . }}
+    release: {{ .Release.Name }}
   type: {{ .Values.rabbitmq.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "rabbitmq.app" . }}-from-{{ include "planner.app" . }}-{{ include "server.app" . }}
+  name: {{ include "rabbitmq.name" . }}-from-{{ include "planner.name" . }}-{{ include "server.name" . }}
+  labels:
+    app: {{ template "rabbitmq.name" . }}
+    chart: {{ template "rabbitmq.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "rabbitmq.app" . }}
+      app: {{ include "rabbitmq.name" . }}
+      release: {{ .Release.Name }}
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "planner.app" . }}
+          app: {{ include "planner.name" . }}
+          release: {{ .Release.Name }}
     - podSelector:
         matchLabels:
-          app: {{ include "server.app" . }}
+          app: {{ include "server.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.rabbitmq.port1 }}
       protocol: TCP

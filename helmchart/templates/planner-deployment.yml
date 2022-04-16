@@ -2,37 +2,46 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "planner.app" . }}-deploy
+  name: {{ include "planner.name" . }}
+  labels:
+    app: {{ template "planner.name" . }}
+    chart: {{ template "planner.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "planner.app" . }}
+      app: {{ include "planner.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "planner.app" . }}
+        app: {{ include "planner.name" . }}
+        release: {{ .Release.Name }}
         dns-policy: enabled
     spec:
       securityContext:
         runAsUser: {{ .Values.planner.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "planner.app" . }}
+      - name: {{ include "planner.name" . }}
         image: "{{ .Values.plannerImage }}:{{ .Values.plannerTag }}"
         env:
+        - name: SERVER_PORT
+          value: {{ .Values.planner.port | quote }}
         - name: TOPO_HOST
-          value: {{ include "toposervice.app" . }}-service
+          value: {{ include "toposervice.name" . }}
         - name: TOPO_PORT
-          value: {{ .Values.toposervice.port | quote }}
+          value: "8181"
         - name: GRPC_CLIENT_WEATHERSERVER_ADDRESS
-          value: "static://{{ include "weatherservice.app" . }}-service:{{ .Values.weatherservice.port }}"
+          value: "static://{{ include "weatherservice.name" . }}:{{ .Values.weatherservice.port }}"
         - name: SPRING_CLOUD_STREAM_RABBIT_BINDER_NODES
-          value: {{ include "rabbitmq.app" . }}-service:5672
+          value: {{ include "rabbitmq.name" . }}:5672
         - name: SPRING_RABBITMQ_HOST
-          value: {{ include "rabbitmq.app" . }}-service
+          value: {{ include "rabbitmq.name" . }}
         - name: SPRING_RABBITMQ_PORT
           value: {{ .Values.rabbitmq.port1 | quote }}
         - name: SPRING_RABBITMQ_USERNAME
@@ -43,30 +52,39 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "planner.app" . }}-to-{{ include "rabbitmq.app" . }}-{{ include "weatherservice.app" . }}-{{ include "toposervice.app" . }}
+  name: {{ include "planner.name" . }}-to-{{ include "rabbitmq.name" . }}-{{ include "weatherservice.name" . }}-{{ include "toposervice.name" . }}
+  labels:
+    app: {{ template "server.name" . }}
+    chart: {{ template "server.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "planner.app" . }}
+      app: {{ include "planner.name" . }}
+      release: {{ .Release.Name }}
   egress:
   - to:
     - podSelector:
         matchLabels:
-          app: {{ include "rabbitmq.app" . }}
+          app: {{ include "rabbitmq.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.rabbitmq.port1 }}
       protocol: TCP
   - to:
     - podSelector:
         matchLabels:
-          app: {{ include "weatherservice.app" . }}
+          app: {{ include "weatherservice.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.weatherservice.port }}
       protocol: TCP
   - to:
     - podSelector:
         matchLabels:
-          app: {{ include "toposervice.app" . }}
+          app: {{ include "toposervice.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.toposervice.port }}
       protocol: TCP

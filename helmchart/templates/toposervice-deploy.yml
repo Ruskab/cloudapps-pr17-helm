@@ -2,29 +2,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "toposervice.app" . }}-deploy
+  name: {{ include "toposervice.name" . }}
+  labels:
+    app: {{ template "toposervice.name" . }}
+    chart: {{ template "toposervice.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "toposervice.app" . }}
+      app: {{ include "toposervice.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "toposervice.app" . }}
+        app: {{ include "toposervice.name" . }}
+        release: {{ .Release.Name }}
         dns-policy: enabled
     spec:
       securityContext:
         runAsUser: {{ .Values.toposervice.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "toposervice.app" . }}
+      - name: {{ include "toposervice.name" . }}
         image: "{{ .Values.topoServiceImage }}:{{ .Values.topoServiceTag }}"
         env:
         - name: SPRING_DATA_MONGODB_HOST
-          value: {{ include "mongodb.app" . }}-service
+          value: {{ include "mongodb.name" . }}
         - name: SPRING_DATA_MONGODB_PORT
           value: {{ .Values.mongodb.port1 | quote }}
         - name: SPRING_DATA_MONGODB_DATABASE
@@ -35,38 +42,46 @@ spec:
           value: {{ .Values.mongodb.rootUsername }}
         - name: SPRING_DATA_MONGODB_PASSWORD
           value: {{ .Values.mongodb.rootPassword }}
+        - name: SERVER_PORT
+          value: {{ .Values.toposervice.port | quote }}
         ports:
         - containerPort: {{ .Values.toposervice.port }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "toposervice.app" . }}-service
+  name: {{ include "toposervice.name" . }}
   labels:
-    app: {{ include "toposervice.app" . }}
+    app: {{ template "toposervice.name" . }}
+    chart: {{ template "toposervice.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.toposervice.port }}
     targetPort: {{ .Values.toposervice.port }}
     protocol: TCP
-    name: {{ include "toposervice.app" . }}-port
+    name: {{ include "toposervice.name" . }}-port
   selector:
-    app: {{ include "toposervice.app" . }}
+    app: {{ include "toposervice.name" . }}
+    release: {{ .Release.Name }}
   type: {{ .Values.toposervice.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "toposervice.app" . }}-to-{{ include "mongodb.app" . }}
+  name: {{ include "toposervice.name" . }}-to-{{ include "mongodb.name" . }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "toposervice.app" . }}
+      app: {{ include "toposervice.name" . }}
+      release: {{ .Release.Name }}
   egress:
   - to:
     - podSelector:
         matchLabels:
-          app: {{ include "mongodb.app" . }}
+          app: {{ include "mongodb.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.mongodb.port1 }}
       protocol: TCP
@@ -74,16 +89,18 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: topo-from-planner-ingress
+  name: {{ include "toposervice.name" . }}-from-{{ include "planner.name" . }}-ingress
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "toposervice.app" . }}
+      app: {{ include "toposervice.name" . }}
+      release: {{ .Release.Name }}
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "planner.app" . }}
+          app: {{ include "planner.name" . }}
+          release: {{ .Release.Name }}
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: ingress-nginx

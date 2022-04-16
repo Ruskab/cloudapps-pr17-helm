@@ -2,39 +2,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mysql.app" . }}-deploy
+  name: {{ template "mysql.name" . }}
+  labels:
+    app: {{ template "mysql.name" . }}
+    chart: {{ template "mysql.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "mysql.app" . }}
+      app: {{ template "mysql.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "mysql.app" . }}
+        app: {{ template "mysql.name" . }}
+        release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ include "mysql.app" . }}
+      - name: {{ include "mysql.name" . }}
         image: "{{ .Values.mysqlImage }}:{{ .Values.mysqlTag }}"
         envFrom:
           - configMapRef:
-              name: {{ include "mysql.app" . }}-env-config-map
+              name: {{ include "mysql.name" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mysql.port }}
         volumeMounts:
         - mountPath: {{ .Values.mysql.mountPath }}
-          name: {{ include "mysql.app" . }}-datadb
+          name: {{ include "mysql.name" . }}-datadb
       volumes:
-      - name: {{ include "mysql.app" . }}-datadb
+      - name: {{ include "mysql.name" . }}-datadb
         persistentVolumeClaim:
-          claimName: {{ include "mysql.app" . }}-pvc
+          claimName: {{ include "mysql.name" . }}-pvc
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mysql.app" . }}-pvc
+  name: {{ include "mysql.name" . }}-pvc
+  labels:
+    app: {{ template "mysql.name" . }}
+    chart: {{ template "mysql.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
 spec:
   storageClassName: {{ .Values.mysql.storageClass }}
   accessModes:
@@ -46,7 +58,13 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "mysql.app" . }}-pv
+  name: {{ include "mysql.name" . }}-pv
+  labels:
+    type: local
+    app: {{ template "mysql.name" . }}
+    chart: {{ template "mysql.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
 spec:
   storageClassName: {{ .Values.mysql.storageClass }}
   accessModes:
@@ -59,32 +77,43 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mysql.app" . }}-service
+  name: {{ template "mysql.name" . }}
   labels:
-    app: {{ include "mysql.app" . }}
+    app: {{ template "mysql.name" . }}
+    chart: {{ template "mysql.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.mysql.port }}
     targetPort: {{ .Values.mysql.port }}
     protocol: TCP
-    name: {{ include "mysql.app" . }}-port
+    name: {{ include "mysql.name" . }}-port
   selector:
-    app: {{ include "mysql.app" . }}
+    app: {{ template "mysql.name" . }}
+    release: {{ .Release.Name }}
   type: {{ .Values.mysql.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "mysql.app" . }}-from-{{ include "server.app" . }}
+  name: {{ include "mysql.name" . }}-from-{{ include "server.name" . }}
+  labels:
+    app: {{ template "mysql.name" . }}
+    chart: {{ template "mysql.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "mysql.app" . }}
+      app: {{ include "mysql.name" . }}
+      release: {{ .Release.Name }}
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "server.app" . }}
+          app: {{ include "server.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.mysql.port }}
       protocol: TCP

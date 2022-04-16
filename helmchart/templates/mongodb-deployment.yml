@@ -2,41 +2,53 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mongodb.app" . }}-deploy
+  name: {{ include "mongodb.name" . }}
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ include "mongodb.app" . }}
+      app: {{ include "mongodb.name" . }}
+      release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        app: {{ include "mongodb.app" . }}
+        app: {{ include "mongodb.name" . }}
+        release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ include "mongodb.app" . }}
+      - name: {{ include "mongodb.name" . }}
         image: "{{ .Values.mongoImage }}:{{ .Values.mongoTag }}"
         envFrom:
           - configMapRef:
-              name: {{ include "mongodb.app" . }}-env-config-map
+              name: {{ include "mongodb.name" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}
         - containerPort: {{ .Values.mongodb.port3 }}
         volumeMounts:
         - mountPath: {{ .Values.mongodb.mountPath }}
-          name: {{ include "mongodb.app" . }}-datadb
+          name: {{ include "mongodb.name" . }}-datadb
       volumes:
-      - name: {{ include "mongodb.app" . }}-datadb
+      - name: {{ include "mongodb.name" . }}-datadb
         persistentVolumeClaim:
-          claimName: {{ include "mongodb.app" . }}-pvc
+          claimName: {{ include "mongodb.name" . }}-pvc
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "mongodb.app" . }}-pv
+  name: {{ include "mongodb.name" . }}-pv
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   storageClassName: {{ .Values.mongodb.storageClass }}
   accessModes:
@@ -49,7 +61,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mongodb.app" . }}-pvc
+  name: {{ include "mongodb.name" . }}-pvc
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   storageClassName: {{ .Values.mongodb.storageClass }}
   accessModes:
@@ -61,40 +78,51 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mongodb.app" . }}-service
+  name: {{ include "mongodb.name" . }}
   labels:
-    app: {{ include "mongodb.app" . }}
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.mongodb.port1 }}
     targetPort: {{ .Values.mongodb.port1 }}
     protocol: TCP
-    name: {{ include "mongodb.app" . }}-port-27017
+    name: {{ include "mongodb.name" . }}-port-27017
   - port: {{ .Values.mongodb.port2 }}
     targetPort: {{ .Values.mongodb.port2 }}
     protocol: TCP
-    name: {{ include "mongodb.app" . }}-port-27018
+    name: {{ include "mongodb.name" . }}-port-27018
   - port: {{ .Values.mongodb.port3 }}
     targetPort: {{ .Values.mongodb.port3 }}
     protocol: TCP
-    name: {{ include "mongodb.app" . }}-port-27019
+    name: {{ include "mongodb.name" . }}-port-27019
   selector:
-    app: {{ include "mongodb.app" . }}
+    app: {{ include "mongodb.name" . }}
+    release: {{ .Release.Name }}
   type: {{ .Values.mongodb.type }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "mongodb.app" . }}-from-topo
+  name: {{ include "mongodb.name" . }}-from-{{ include "toposervice.name" . }}
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ include "mongodb.app" . }}
+      app: {{ include "mongodb.name" . }}
+      release: {{ .Release.Name }}
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: {{ include "toposervice.app" . }}
+          app: {{ include "toposervice.name" . }}
+          release: {{ .Release.Name }}
     ports:
     - port: {{ .Values.mongodb.port1 }}
       protocol: TCP

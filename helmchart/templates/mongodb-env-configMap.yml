@@ -1,7 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "mongodb.app" . }}-env-config-map
+  name: {{ include "mongodb.name" . }}-env-config-map
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 data:
   MONGO_INITDB_DATABASE: {{ .Values.mongodb.database | quote}}
   MONGO_INITDB_ROOT_USERNAME: {{ .Values.mongodb.rootUsername | quote }}
