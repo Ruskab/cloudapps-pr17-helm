@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mongodb.name" . }}
+  name: {{ include "mongodb.fullname" . }}
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}
@@ -23,27 +23,27 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ include "mongodb.name" . }}
+      - name: {{ include "mongodb.fullname" . }}
         image: "{{ .Values.mongoImage }}:{{ .Values.mongoTag }}"
         envFrom:
           - configMapRef:
-              name: {{ include "mongodb.name" . }}-env-config-map
+              name: {{ include "mongodb.fullname" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}
         - containerPort: {{ .Values.mongodb.port3 }}
         volumeMounts:
         - mountPath: {{ .Values.mongodb.mountPath }}
-          name: {{ include "mongodb.name" . }}-datadb
+          name: {{ include "mongodb.fullname" . }}-datadb
       volumes:
-      - name: {{ include "mongodb.name" . }}-datadb
+      - name: {{ include "mongodb.fullname" . }}-datadb
         persistentVolumeClaim:
-          claimName: {{ include "mongodb.name" . }}-pvc
+          claimName: {{ include "mongodb.fullname" . }}-pvc
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "mongodb.name" . }}-pv
+  name: {{ include "mongodb.fullname" . }}-pv
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}
@@ -61,7 +61,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mongodb.name" . }}-pvc
+  name: {{ include "mongodb.fullname" . }}-pvc
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}
@@ -78,7 +78,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mongodb.name" . }}
+  name: {{ include "mongodb.fullname" . }}
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}
@@ -89,15 +89,15 @@ spec:
   - port: {{ .Values.mongodb.port1 }}
     targetPort: {{ .Values.mongodb.port1 }}
     protocol: TCP
-    name: {{ include "mongodb.name" . }}-port-27017
+    name: {{ include "mongodb.fullname" . }}-port-27017
   - port: {{ .Values.mongodb.port2 }}
     targetPort: {{ .Values.mongodb.port2 }}
     protocol: TCP
-    name: {{ include "mongodb.name" . }}-port-27018
+    name: {{ include "mongodb.fullname" . }}-port-27018
   - port: {{ .Values.mongodb.port3 }}
     targetPort: {{ .Values.mongodb.port3 }}
     protocol: TCP
-    name: {{ include "mongodb.name" . }}-port-27019
+    name: {{ include "mongodb.fullname" . }}-port-27019
   selector:
     app: {{ include "mongodb.name" . }}
     release: {{ .Release.Name }}
@@ -106,7 +106,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "mongodb.name" . }}-from-{{ include "toposervice.name" . }}
+  name: {{ include "mongodb.fullname" . }}-from-{{ include "toposervice.fullname" . }}
   labels:
     app: {{ template "mongodb.name" . }}
     chart: {{ template "mongodb.chart" . }}
