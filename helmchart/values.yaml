@@ -15,6 +15,10 @@ weathServiceTag: v1.0
 nameOverride: ""
 fullnameOverride: ""
 
+
+#release configurations
+persistanceEnabled: true
+
 mysql:
   type: ClusterIP
   mysqlRootPassword: password

@@ -30,6 +30,7 @@ spec:
               name: {{ include "mysql.fullname" . }}-env-config-map
         ports:
         - containerPort: {{ .Values.mysql.port }}
+{{- if .Values.persistanceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.mysql.mountPath }}
           name: {{ include "mysql.fullname" . }}-datadb
@@ -37,6 +38,7 @@ spec:
       - name: {{ include "mysql.fullname" . }}-datadb
         persistentVolumeClaim:
           claimName: {{ include "mysql.fullname" . }}-pvc
+{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

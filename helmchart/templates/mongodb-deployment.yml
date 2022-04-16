@@ -32,6 +32,7 @@ spec:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}
         - containerPort: {{ .Values.mongodb.port3 }}
+{{- if .Values.persistanceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.mongodb.mountPath }}
           name: {{ include "mongodb.fullname" . }}-datadb
@@ -39,6 +40,7 @@ spec:
       - name: {{ include "mongodb.fullname" . }}-datadb
         persistentVolumeClaim:
           claimName: {{ include "mongodb.fullname" . }}-pvc
+{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolume

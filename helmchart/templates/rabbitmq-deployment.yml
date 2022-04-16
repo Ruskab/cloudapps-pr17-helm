@@ -31,6 +31,7 @@ spec:
         ports:
         - containerPort: {{ .Values.rabbitmq.port1 }}
         - containerPort: {{ .Values.rabbitmq.port2 }}
+{{- if .Values.persistanceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.rabbitmq.mountPath }}
           name: {{ include "rabbitmq.fullname" . }}-datarabbit
@@ -38,6 +39,7 @@ spec:
       - name: {{ include "rabbitmq.fullname" . }}-datarabbit
         persistentVolumeClaim:
           claimName: {{ include "rabbitmq.fullname" . }}-pvc
+{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
