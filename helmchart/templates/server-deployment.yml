@@ -32,7 +32,7 @@ spec:
         command: ["bash"]
         args:
         - "-c"
-        - "./wait-for-it.sh {{ include "mysql.fullname" . }}:{{ .Values.mysql.port }} -t 500 -- ./wait-for-it.sh {{ include "rabbitmq.name" . }}:{{ .Values.rabbitmq.port1 }} -t 500 -- node src/server.js"
+        - "./wait-for-it.sh {{ include "mysql.fullname" . }}:{{ .Values.mysql.port }} -t 500 -- ./wait-for-it.sh {{ include "rabbitmq.fullname" . }}:{{ .Values.rabbitmq.port1 }} -t 500 -- node src/server.js"
         env:
         - name: MYSQL_HOST
           value: {{ include "mysql.fullname" . }}
@@ -49,7 +49,7 @@ spec:
               name: {{ include "mysql.fullname" . }}-env-config-map
               key: MYSQL_ROOT_PASSWORD
         - name: RABBITMQ_URL
-          value: amqp://{{ .Values.rabbitmq.rabbitmqDefaultUser }}:{{ .Values.rabbitmq.rabbitmqDefaultPass }}@{{ include "rabbitmq.name" . }}
+          value: amqp://{{ .Values.rabbitmq.rabbitmqDefaultUser }}:{{ .Values.rabbitmq.rabbitmqDefaultPass }}@{{ include "rabbitmq.fullname" . }}
         ports:
         - containerPort: {{ .Values.eoloServer.port }}
 ---
@@ -76,7 +76,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "server.name" . }}-to-{{ include "mysql.fullname" . }}-{{ include "rabbitmq.name" . }}
+  name: {{ include "server.name" . }}-to-{{ include "mysql.fullname" . }}-{{ include "rabbitmq.fullname" . }}
 spec:
   podSelector:
     matchLabels:

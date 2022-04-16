@@ -39,9 +39,9 @@ spec:
         - name: GRPC_CLIENT_WEATHERSERVER_ADDRESS
           value: "static://{{ include "weatherservice.name" . }}:{{ .Values.weatherservice.port }}"
         - name: SPRING_CLOUD_STREAM_RABBIT_BINDER_NODES
-          value: {{ include "rabbitmq.name" . }}:5672
+          value: {{ include "rabbitmq.fullname" . }}:5672
         - name: SPRING_RABBITMQ_HOST
-          value: {{ include "rabbitmq.name" . }}
+          value: {{ include "rabbitmq.fullname" . }}
         - name: SPRING_RABBITMQ_PORT
           value: {{ .Values.rabbitmq.port1 | quote }}
         - name: SPRING_RABBITMQ_USERNAME
@@ -52,7 +52,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "planner.name" . }}-to-{{ include "rabbitmq.name" . }}-{{ include "weatherservice.name" . }}-{{ include "toposervice.name" . }}
+  name: {{ include "planner.name" . }}-to-{{ include "rabbitmq.fullname" . }}-{{ include "weatherservice.name" . }}-{{ include "toposervice.name" . }}
   labels:
     app: {{ template "server.name" . }}
     chart: {{ template "server.chart" . }}
