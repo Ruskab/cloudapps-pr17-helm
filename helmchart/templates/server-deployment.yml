@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "server.name" . }}
+  name: {{ template "server.fullname" . }}
   labels:
     app: {{ template "server.name" . }}
     chart: {{ template "server.chart" . }}
@@ -27,7 +27,7 @@ spec:
         runAsUser: {{ .Values.eoloServer.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "server.name" . }}
+      - name: {{ include "server.fullname" . }}
         image: "{{ .Values.serverImage }}:{{ .Values.serverTag }}"
         command: ["bash"]
         args:
@@ -56,7 +56,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "server.name" . }}
+  name: {{ template "server.fullname" . }}
   labels:
     app: {{ template "server.name" . }}
     chart: {{ template "server.chart" . }}
@@ -67,7 +67,7 @@ spec:
   - port: {{ .Values.eoloServer.port }}
     targetPort: {{ .Values.eoloServer.port }}
     protocol: TCP
-    name: {{ include "server.name" . }}-port
+    name: {{ include "server.fullname" . }}-port
   selector:
     app: {{ template "server.name" . }}
     release: {{ .Release.Name }}
@@ -76,7 +76,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "server.name" . }}-to-{{ include "mysql.fullname" . }}-{{ include "rabbitmq.fullname" . }}
+  name: {{ include "server.fullname" . }}-to-{{ include "mysql.fullname" . }}-{{ include "rabbitmq.fullname" . }}
 spec:
   podSelector:
     matchLabels:
@@ -103,7 +103,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "server.name" . }}-from-ingress
+  name: {{ include "server.fullname" . }}-from-ingress
 spec:
   podSelector:
     matchLabels:

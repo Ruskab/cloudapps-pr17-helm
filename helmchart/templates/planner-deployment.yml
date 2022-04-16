@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "planner.name" . }}
+  name: {{ include "planner.fullname" . }}
   labels:
     app: {{ template "planner.name" . }}
     chart: {{ template "planner.chart" . }}
@@ -27,7 +27,7 @@ spec:
         runAsUser: {{ .Values.planner.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "planner.name" . }}
+      - name: {{ include "planner.fullname" . }}
         image: "{{ .Values.plannerImage }}:{{ .Values.plannerTag }}"
         env:
         - name: SERVER_PORT
@@ -52,7 +52,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "planner.name" . }}-to-{{ include "rabbitmq.fullname" . }}-{{ include "weatherservice.fullname" . }}-{{ include "toposervice.fullname" . }}
+  name: {{ include "planner.fullname" . }}-to-{{ include "rabbitmq.fullname" . }}-{{ include "weatherservice.fullname" . }}-{{ include "toposervice.fullname" . }}
   labels:
     app: {{ template "server.name" . }}
     chart: {{ template "server.chart" . }}

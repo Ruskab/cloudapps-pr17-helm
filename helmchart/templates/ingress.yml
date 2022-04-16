@@ -18,7 +18,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "server.name" . }}
+                name: {{ include "server.fullname" . }}
                 port:
                   number: {{ .Values.eoloServer.port }}
           - path: /toposervice/(.*)

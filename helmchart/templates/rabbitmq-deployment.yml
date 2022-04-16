@@ -101,7 +101,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "rabbitmq.fullname" . }}-from-{{ include "planner.name" . }}-{{ include "server.name" . }}
+  name: {{ include "rabbitmq.fullname" . }}-from-{{ include "planner.fullname" . }}-{{ include "server.fullname" . }}
   labels:
     app: {{ template "rabbitmq.name" . }}
     chart: {{ template "rabbitmq.chart" . }}
