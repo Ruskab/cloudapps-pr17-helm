@@ -100,6 +100,7 @@ spec:
     release: {{ .Release.Name }}
   type: {{ .Values.rabbitmq.type }}
 ---
+{{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -127,3 +128,4 @@ spec:
     ports:
     - port: {{ .Values.rabbitmq.port1 }}
       protocol: TCP
+{{- end }}

@@ -96,6 +96,7 @@ spec:
     release: {{ .Release.Name }}
   type: {{ .Values.mysql.type }}
 ---
+{{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -119,3 +120,4 @@ spec:
     ports:
     - port: {{ .Values.mysql.port }}
       protocol: TCP
+{{- end }}

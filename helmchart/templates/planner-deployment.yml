@@ -49,6 +49,7 @@ spec:
         - name: SPRING_RABBITMQ_PASSWORD
           value: {{ .Values.rabbitmq.rabbitmqDefaultPass }}
 ---
+{{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -88,3 +89,4 @@ spec:
     ports:
     - port: {{ .Values.toposervice.port }}
       protocol: TCP
+{{- end }}

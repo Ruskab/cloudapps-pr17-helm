@@ -58,6 +58,7 @@ spec:
     release: {{ .Release.Name }}
   type: {{ .Values.weatherservice.type }}
 ---
+{{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -81,3 +82,4 @@ spec:
     ports:
     - port: {{ .Values.weatherservice.port }}
       protocol: TCP
+{{- end }}

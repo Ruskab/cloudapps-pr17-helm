@@ -18,6 +18,9 @@ fullnameOverride: ""
 
 #release configurations
 persistanceEnabled: true
+ingressEnabled: false
+networkPoliciesEnabled: false
+serviceType: ClusterIP
 
 mysql:
   type: ClusterIP
@@ -72,6 +75,6 @@ eoloServer:
 
 ingress:
   host: cluster-ip
-  enabled: false
+  noIngressType: NodePort
 
 replicaCount: 1
