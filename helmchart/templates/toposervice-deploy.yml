@@ -15,7 +15,7 @@ spec:
     matchLabels:
       app: {{ include "toposervice.name" . }}
       release: {{ .Release.Name }}
-  replicas: 1
+  replicas: {{ .Values.eoloServer.replicas }}
   template:
     metadata:
       labels:
@@ -65,7 +65,11 @@ spec:
   selector:
     app: {{ include "toposervice.name" . }}
     release: {{ .Release.Name }}
+{{- if .Values.ingressEnabled }}
+  type: ClusterIP
+{{ else }}
   type: {{ .Values.serviceType }}
+{{- end }}
 ---
 {{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
@@ -86,6 +90,7 @@ spec:
     ports:
     - port: {{ .Values.mongodb.port1 }}
       protocol: TCP
+{{- if .Values.ingressEnabled }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -97,18 +102,36 @@ spec:
       app: {{ include "toposervice.name" . }}
       release: {{ .Release.Name }}
   ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: {{ include "planner.name" . }}
-          release: {{ .Release.Name }}
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: ingress-nginx
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/name: ingress-nginx
-    ports:
-    - protocol: TCP
-      port: {{ .Values.toposervice.port }}
+    - from:
+        - podSelector:
+            matchLabels:
+              app: {{ include "planner.name" . }}
+              release: {{ .Release.Name }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: {{ .Values.toposervice.port }}
+{{ else }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "toposervice.fullname" . }}-from-{{ include "planner.fullname" . }}-exterior
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "toposervice.name" . }}
+      release: {{ .Release.Name }}
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.toposervice.port }}
+{{- end }}
+
 {{- end }}

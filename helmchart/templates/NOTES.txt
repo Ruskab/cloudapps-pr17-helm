@@ -1,24 +1,80 @@
 1. Get the application URL by running these commands:
 {{- if .Values.ingressEnabled }}
-    echo "Ingress"
-{{/*kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'*/}}
-  export INGRESS_PORT=$(kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}')
-  http://{{ .Values.ingress.host }}:$INGRESS_PORT
+  linux...
+
+      echo "Ingress"
+      export INGRESS_PORT=$(kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}')
+      http://{{ .Values.ingress.host }}:$INGRESS_PORT
+      http://{{ .Values.ingress.host }}:$INGRESS_PORT/api/topographicdetails/Madrid
+
+  windows...
+
+      execute command and copy&past endpoint y port...
+      kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
+
+      http://{{ .Values.ingress.host }}:<PORT>
+      http://{{ .Values.ingress.host }}:<PORT>/api/topographicdetails/Madrid
+
 {{- else if contains "NodePort" .Values.serviceType }}
-  echo "NodePort"
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "server.fullname" . }})
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
+
+  linux...
+
+      echo "NodePort server"
+      export NODE_PORT_SERVER=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "server.fullname" . }})
+      export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+      echo http://$NODE_IP:$NODE_PORT_SERVER
+
+      echo "NodePort toposervice API"
+      export NODE_PORT_TOPO_API=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "toposervice.fullname" . }})
+      export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+      echo http://$NODE_IP:$NODE_PORT_TOPO_API
+
+  windows...
+      execute command and copy&past endpoint y port...
+
+  SERVER
+      kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}"
+      kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "server.fullname" . }}
+
+  TOPOSERVICE
+      kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "toposervice.fullname" . }}
+      kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}"
+
+      http://<DOMAIN>:<PORT>
+      http://<DOMAIN>:<PORT>/api/topographicdetails/Madrid
+
 {{- else if contains "LoadBalancer" .Values.serviceType }}
-     echo "LoadBalancer"
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "server.fullname" . }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "server.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.eoloServer.port }}
+
+    echo "LoadBalancer"
+    NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+
+    You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "server.fullname" . }}'
+
+  linux...
+
+    SERVER
+        kubectl get svc --namespace {{ .Release.Namespace }} {{ template "server.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+        export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "server.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+        echo http://$SERVICE_IP:{{ .Values.eoloServer.port }}
+
+  windows...
+    SERVER
+
+        kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}"
+        kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "server.fullname" . }}
+        http://<SERVER_IP>:{{ .Values.eoloServer.port }}
+
+    TOPOSERVICE
+
+        http://<DOMAIN>:<PORT>/api/topographicdetails/Madrid
+
+
 {{- else if contains "ClusterIP" .Values.serviceType }}
+
   echo "ClusterIP"
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "server.fullname" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+
 {{- end }}

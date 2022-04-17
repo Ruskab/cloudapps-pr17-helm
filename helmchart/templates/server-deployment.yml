@@ -15,7 +15,7 @@ spec:
     matchLabels:
       app: {{ template "server.name" . }}
       release: {{ .Release.Name }}
-  replicas: 1
+  replicas: {{ .Values.eoloServer.replicas }}
   template:
     metadata:
       labels:
@@ -71,7 +71,11 @@ spec:
   selector:
     app: {{ template "server.name" . }}
     release: {{ .Release.Name }}
+{{- if .Values.ingressEnabled }}
+  type: ClusterIP
+{{ else }}
   type: {{ .Values.serviceType }}
+{{- end }}
 ---
 {{- if .Values.networkPoliciesEnabled }}
 apiVersion: networking.k8s.io/v1
@@ -101,6 +105,7 @@ spec:
     - port: {{ .Values.rabbitmq.port1 }}
       protocol: TCP
 ---
+{{- if .Values.ingressEnabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -110,7 +115,6 @@ spec:
     matchLabels:
       app: {{ include "server.name" . }}
       release: {{ .Release.Name }}
-{{- if .Values.ingressEnabled }}
   ingress:
     - from:
       - namespaceSelector:
@@ -123,6 +127,17 @@ spec:
       - protocol: TCP
         port: {{ .Values.eoloServer.port }}
 {{ else }}
-  ingress: []
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "server.fullname" . }}-from-exterior
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "server.name" . }}
+      release: {{ .Release.Name }}
+  ingress:
+    - from: []
+      ports: []
 {{- end }}
 {{- end }}

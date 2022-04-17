@@ -20,7 +20,7 @@ fullnameOverride: ""
 persistanceEnabled: true
 ingressEnabled: true
 networkPoliciesEnabled: true
-serviceType: ClusterIP
+serviceType: NodePort
 
 mysql:
   type: ClusterIP
@@ -71,7 +71,7 @@ planner:
 eoloServer:
   user: 1001
   port: 3000
-  type: ClusterIP
+  replicas: 1
 
 ingress:
   host: cluster-ip

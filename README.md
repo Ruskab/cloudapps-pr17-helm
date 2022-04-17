@@ -1,7 +1,9 @@
-
 # Comandos utiles 
 
 ````shell
+#No ingress + LoadBalancer + 2 replicas 
+ helm install --set ingressEnabled=false,serviceType=LoadBalancer,eoloServer.replicas=2  myapp .\helmchart
+
 
 kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
 
@@ -16,6 +18,9 @@ kubectl port-forward nginx 8081:80
 #get endpoint with port 
 minikube service server-service --url;
 
+kubectl -n kube-system exec cilium-1c2cz cilium endpoint list
+minikube addons enable ingress
+
 
 check app toposerv
 https://cluster-ip/toposervice/api/topographicdetails/Madrid
@@ -27,132 +32,44 @@ http://cluster-ip/
 minikube start --network-plugin=cni --cni=false --driver=hyperv
 ````
 
-#First version
-* app accesible via NodePort and exposed port 30000
-  * server service: type nodePort
-  * toposervice : type nodePort
+# checklist 
 
-check connection
-````shell
-.\test.bat 172.24.250.168
-````
+ - [ ] Se debe permitir que convivan dos releases del mismo chart en el mismo
+  namespace a la misma vez sin ningún tipo de interferencia. Eso implica que los
+  nombre de los recursos, las etiquetas y demás identificadores que sean necesarios
+  estén prefijados con el nombre de la release
 
-#Apply policy deny all
-````shell
-kubectl apply -f .\kubernetes\network\np-deny-all.yaml
-````
-
-* if check connection server and toposervice not reachable FAIL
-
-
-* create policy deny all
-````shell
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-````
-
-* create all pods policy permit all
-
-````shell
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: rabbitmq-np
-spec:
-  podSelector:
-    matchLabels:
-      app: rabbitmq
-  ingress:
-    - from: []
-  egress:
-    - to: []
-
-````
-
-kubectl get networkpolicies
-
-kubectl -n kube-system exec cilium-1c2cz cilium endpoint list
+ - [ ] Se podrá activar o desactivar el ingress para la aplicación. Se tendrá en cuenta
+   cómo afecta la existencia de ingress a otros recursos del despliegue para que el
+   server y el toposervice sigan siendo accesibles desde el exterior (obviamente sin
+   compartir dominio).
+ - [ ] Se deberá poder configurar el tipo de servicio (NodePort o LoadBalancer) para
+   publicar el server y el toposervice en caso de que no se use el ingress.
+ - [ ] Se deberá poder configurar el dominio del host del ingress.
+ - [ ] Respecto a la persistencia, se deberá poder configurar si:
+   - Se crean los PersistenceVolumes (opción por defecto)
+   - No se crean porque se asume que ya están creados. En este caso, se
+     deberá poder especificar la storageclass de cada servicio que lo necesita
+     (mysql, rabbit y mongo)
+   - Se crean de forma dinámica usando el StorageClass por defecto de la
+     plataforma
+ - [ ] Se deberá poder configurar si se aplican Network Policies o no
+ - [ ] Se deberá poder configurar la imagen y el tag de cada uno de los servicios
+ - [ ] Se deberá publicar un repositorio con el chart en un servidor http (GitHub, por
+   ejemplo) y darlo
+ - [ ] En el NOTES.txt se deberá indicar cómo acceder a los servicios una vez desplegada
+   la release. Esa información deberá depender de si se usa ingress o no.
+---
+ - [ ] Se debe grabar un vídeo en el que se vea cómo se despliega una release con ingress y
+   luego se actualiza esa release para que no use ingrees. En el vídeo se tienen que mostrar
+   los recursos kubernetes que se ven afectados por el cambio. También se tiene que mostrar
+   el servicio funcionando en ambos casos.
 
 
 
 
 
 
-```shell
-minikube addons enable ingress
-```
- 
-  * server service: type ClusterIP
 
 
-````shell
-working API
 
-apiVersion: networking.k8s.io/v1
-kind: Ingress  
-metadata:  
-  name: cluster-ip-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-spec:
-  rules:
-   - host: cluster-ip
-     http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: server-service
-            port:
-              number: 3000
-      - path: /toposervice(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: toposervice-service
-            port:
-              number: 8181
-````
-
-working webapp
-nginx.ingress.kubernetes.io/rewrite-target: /
-
-# EoloPlanner
-
-Este proyecto es una aplicación distribuida formada por diferentes servicios que se comunican entre sí usando API REST y gRPC. La aplicación ofrece un interfaz web que se comunica con el servidor con GraphQL. 
-
-Algunos servicios están implementados con Node.js/Express y otros con Java/Spring. Estas tecnologías deben estar instaladas en el host para poder construir y ejecutar los servicios. También se requiere Docker para ejecutar los servicios auxiliares (MySQL y MongoDB).
-
-Para la construcción de los servicios y su ejecución, así como la ejecución de los servicios auxiliares requeridos se usan scripts implementados en Node.js. Posiblemente no sea el lenguaje de scripting más utilizado para este caso de uso, pero en este caso concreto facilita la interoperabilidad en varios SOs y es sencillo.
-
-## Iniciar servicios auxiliares: MongoDB y MySQL
-
-Los servicios auxiliares se ejecutan con la tecnología de contenedores Docker usando el siguiente comando:
-
-```
-$ node exec_aux_services.js
-```
-
-## Construir servicios
-
-Descarga las dependencias y construye los proyectos. En proyectos Java usa Maven. En proyectos Node usa NPM:
-
-```
-$ node build.js
-```
-
-## Ejecutar servicios
-
-Ejecuta los servicios. En proyectos Java usa Maven. En proyectos Node usa esta tecnología directamente:
-
-```
-$ node exec.js
-```
