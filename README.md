@@ -1,8 +1,16 @@
 # Comandos utiles 
 
 ````shell
+#default Ingress + network policies + persistance
+helm install  myapp .\helmchart
+
+#explicit params (no ingress, no network policies, no persistance, NodePort)
+helm install --set ingressEnabled=false,networkPoliciesEnabled=false,persistanceEnabled=false,serviceType=NodePort  myapp .\helmchart
+
+
 #No ingress + LoadBalancer + 2 replicas 
- helm install --set ingressEnabled=false,serviceType=LoadBalancer,eoloServer.replicas=2  myapp .\helmchart
+helm install --set ingressEnabled=false,serviceType=LoadBalancer,eoloServer.replicas=2  myapp .\helmchart
+
 
 
 kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
@@ -38,6 +46,7 @@ minikube start --network-plugin=cni --cni=false --driver=hyperv
   namespace a la misma vez sin ningún tipo de interferencia. Eso implica que los
   nombre de los recursos, las etiquetas y demás identificadores que sean necesarios
   estén prefijados con el nombre de la release
+   - Clase 6 -> 2:37 multiple hosts in same ingress
 
  - [ ] Se podrá activar o desactivar el ingress para la aplicación. Se tendrá en cuenta
    cómo afecta la existencia de ingress a otros recursos del despliegue para que el
@@ -56,7 +65,7 @@ minikube start --network-plugin=cni --cni=false --driver=hyperv
  - [ ] Se deberá poder configurar si se aplican Network Policies o no
  - [ ] Se deberá poder configurar la imagen y el tag de cada uno de los servicios
  - [ ] Se deberá publicar un repositorio con el chart en un servidor http (GitHub, por
-   ejemplo) y darlo
+   ejemplo) y darlo de alta en ArtifactHUB
  - [ ] En el NOTES.txt se deberá indicar cómo acceder a los servicios una vez desplegada
    la release. Esa información deberá depender de si se usa ingress o no.
 ---

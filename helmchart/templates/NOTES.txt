@@ -5,7 +5,7 @@
       echo "Ingress"
       export INGRESS_PORT=$(kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}')
       http://{{ .Values.ingress.host }}:$INGRESS_PORT
-      http://{{ .Values.ingress.host }}:$INGRESS_PORT/api/topographicdetails/Madrid
+      http://{{ .Values.ingress.host }}:$INGRESS_PORT/toposervice/api/topographicdetails/Madrid
 
   windows...
 
@@ -13,7 +13,7 @@
       kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
 
       http://{{ .Values.ingress.host }}:<PORT>
-      http://{{ .Values.ingress.host }}:<PORT>/api/topographicdetails/Madrid
+      http://{{ .Values.ingress.host }}:<PORT>/toposervice/api/topographicdetails/Madrid
 
 {{- else if contains "NodePort" .Values.serviceType }}
 
