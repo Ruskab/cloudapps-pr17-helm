@@ -31,7 +31,6 @@ spec:
         ports:
         - containerPort: {{ .Values.rabbitmq.port1 }}
         - containerPort: {{ .Values.rabbitmq.port2 }}
-{{- if .Values.persistanceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.rabbitmq.mountPath }}
           name: {{ include "rabbitmq.fullname" . }}-datarabbit
@@ -39,7 +38,6 @@ spec:
       - name: {{ include "rabbitmq.fullname" . }}-datarabbit
         persistentVolumeClaim:
           claimName: {{ include "rabbitmq.fullname" . }}-pvc
-{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -51,12 +49,15 @@ metadata:
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
 spec:
+{{- if .Values.rabbitmq.storageClass }}
   storageClassName: {{ .Values.rabbitmq.storageClass }}
+{{- end }}
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+{{- if contains "rabbit" .Values.rabbitmq.storageClass }}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -75,6 +76,7 @@ spec:
     storage: 1Gi
   hostPath:
     path: /db/rabbitmq
+{{- end }}
 ---
 apiVersion: v1
 kind: Service

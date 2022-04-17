@@ -32,7 +32,6 @@ spec:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}
         - containerPort: {{ .Values.mongodb.port3 }}
-{{- if .Values.persistanceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.mongodb.mountPath }}
           name: {{ include "mongodb.fullname" . }}-datadb
@@ -40,7 +39,7 @@ spec:
       - name: {{ include "mongodb.fullname" . }}-datadb
         persistentVolumeClaim:
           claimName: {{ include "mongodb.fullname" . }}-pvc
-{{- end }}
+{{- if contains "mongodb" .Values.mongodb.storageClass }}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -59,6 +58,7 @@ spec:
     storage: 1Gi
   hostPath:
     path: /db/mongo
+{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -70,7 +70,9 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
+{{- if .Values.mongodb.storageClass }}
   storageClassName: {{ .Values.mongodb.storageClass }}
+{{- end }}
   accessModes:
   - ReadWriteOnce
   resources:

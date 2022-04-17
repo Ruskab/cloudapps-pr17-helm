@@ -17,7 +17,6 @@ fullnameOverride: ""
 
 
 #release configurations
-persistanceEnabled: true
 ingressEnabled: true
 networkPoliciesEnabled: true
 serviceType: NodePort
