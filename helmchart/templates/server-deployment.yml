@@ -110,7 +110,7 @@ spec:
     matchLabels:
       app: {{ include "server.name" . }}
       release: {{ .Release.Name }}
-{{- if .Values.ingressEnabled -}}
+{{- if .Values.ingressEnabled }}
   ingress:
     - from:
       - namespaceSelector:

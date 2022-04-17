@@ -18,8 +18,8 @@ fullnameOverride: ""
 
 #release configurations
 persistanceEnabled: true
-ingressEnabled: false
-networkPoliciesEnabled: false
+ingressEnabled: true
+networkPoliciesEnabled: true
 serviceType: ClusterIP
 
 mysql:
