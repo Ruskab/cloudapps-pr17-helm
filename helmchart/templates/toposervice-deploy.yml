@@ -76,6 +76,9 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "toposervice.fullname" . }}-to-{{ include "mongodb.fullname" . }}
+  labels:
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
@@ -96,6 +99,9 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "toposervice.fullname" . }}-from-{{ include "planner.fullname" . }}-ingress
+  labels:
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:
@@ -122,6 +128,9 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "toposervice.fullname" . }}-from-{{ include "planner.fullname" . }}-exterior
+  labels:
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector:
     matchLabels:

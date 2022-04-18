@@ -1,17 +1,18 @@
 # Comandos utiles 
 
 ````shell
-#default Ingress + network policies + persistance
+#default Ingress + network policies + persistance create default PV
 helm install  myapp .\helmchart
 
-#explicit params (no ingress, no network policies, no persistance, NodePort)
-helm install --set ingressEnabled=false,networkPoliciesEnabled=false,persistanceEnabled=false,serviceType=NodePort  myapp .\helmchart
+#explicit params (no ingress, no network policies, dynamic persistance, NodePort)
+helm install --set ingressEnabled=false,networkPoliciesEnabled=false,mysql.storageClass=,mongodb.storageClass=,rabbitmq.storageClass=,serviceType=NodePort  myapp .\helmchart
 
 
 #No ingress + LoadBalancer + 2 replicas 
 helm install --set ingressEnabled=false,serviceType=LoadBalancer,eoloServer.replicas=2  myapp .\helmchart
 
-
+#Provide persistance PV
+helm install --set mysql.storageClass=mymysqlpv,mongodb.storageClass=mymongodbpv,rabbitmq.storageClass=myrabbitmqpv  myapp .\helmchart
 
 kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
 

@@ -108,8 +108,6 @@ kind: NetworkPolicy
 metadata:
   name: {{ include "rabbitmq.fullname" . }}-from-{{ include "planner.fullname" . }}-{{ include "server.fullname" . }}
   labels:
-    app: {{ template "rabbitmq.name" . }}
-    chart: {{ template "rabbitmq.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:

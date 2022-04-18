@@ -55,8 +55,6 @@ kind: NetworkPolicy
 metadata:
   name: {{ include "planner.fullname" . }}-to-{{ include "rabbitmq.fullname" . }}-{{ include "weatherservice.fullname" . }}-{{ include "toposervice.fullname" . }}
   labels:
-    app: {{ template "server.name" . }}
-    chart: {{ template "server.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:

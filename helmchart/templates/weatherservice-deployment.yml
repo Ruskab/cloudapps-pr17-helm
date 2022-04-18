@@ -26,7 +26,7 @@ spec:
         runAsUser: {{ .Values.weatherservice.user }}
       restartPolicy: Always
       containers:
-      - name: {{ include "weatherservice.name" . }}
+      - name: {{ include "weatherservice.fullname" . }}
         image: "{{ .Values.weathServiceImage }}:{{ .Values.weathServiceTag }}"
         env:
         - name: GRPC_HOST
@@ -64,8 +64,6 @@ kind: NetworkPolicy
 metadata:
   name: {{ include "weatherservice.fullname" . }}-from-{{ include "planner.fullname" . }}
   labels:
-    app: {{ template "mongodb.name" . }}
-    chart: {{ template "mongodb.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
