@@ -16,6 +16,10 @@ helm install --set mysql.storageClass=mymysqlpv,mongodb.storageClass=mymongodbpv
 
 kubectl get service ingress-nginx-controller -n ingress-nginx --output='jsonpath={.spec.ports[0].nodePort}'
 
+# isntall release 1 myapp
+helm install --set ingress.host=otherip,networkPoliciesEnabled=false,persistenceEnabled=false myapp .\helmchart
+# install release 2 otherapp
+helm install --set ingress.host=otherip,networkPoliciesEnabled=false,persistenceEnabled=false otherapp .\helmchart
 
 
 # volume local dir with the container

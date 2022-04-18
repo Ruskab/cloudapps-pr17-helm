@@ -20,6 +20,8 @@ fullnameOverride: ""
 ingressEnabled: true
 networkPoliciesEnabled: true
 serviceType: NodePort
+#dev configuration disable PV
+persistenceEnabled: true
 
 mysql:
   type: ClusterIP

@@ -32,6 +32,7 @@ spec:
         - containerPort: {{ .Values.mongodb.port1 }}
         - containerPort: {{ .Values.mongodb.port2 }}
         - containerPort: {{ .Values.mongodb.port3 }}
+{{- if .Values.persistenceEnabled }}
         volumeMounts:
         - mountPath: {{ .Values.mongodb.mountPath }}
           name: {{ include "mongodb.fullname" . }}-datadb
@@ -39,6 +40,30 @@ spec:
       - name: {{ include "mongodb.fullname" . }}-datadb
         persistentVolumeClaim:
           claimName: {{ include "mongodb.fullname" . }}-pvc
+{{- end }}
+{{- if .Values.persistenceEnabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mongodb.fullname" . }}-pvc
+  labels:
+    app: {{ template "mongodb.name" . }}
+    chart: {{ template "mongodb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+{{- if .Values.mongodb.storageClass }}
+  storageClassName: {{ .Values.mongodb.storageClass }}
+{{- end }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi          
+{{- end }}
+
+{{- if .Values.persistenceEnabled }}
 {{- if contains "mongodb" .Values.mongodb.storageClass }}
 ---
 apiVersion: v1
@@ -59,25 +84,8 @@ spec:
   hostPath:
     path: /db/mongo
 {{- end }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "mongodb.fullname" . }}-pvc
-  labels:
-    app: {{ template "mongodb.name" . }}
-    chart: {{ template "mongodb.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-spec:
-{{- if .Values.mongodb.storageClass }}
-  storageClassName: {{ .Values.mongodb.storageClass }}
 {{- end }}
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi          
+
 ---
 apiVersion: v1
 kind: Service
