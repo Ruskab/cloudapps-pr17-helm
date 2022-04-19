@@ -4,6 +4,9 @@
 #default Ingress + network policies + persistance create default PV
 helm install  myapp .\helmchart
 
+#using my planner
+helm install --set plannerImage=ruskab/myplanner,plannerTag=v1.0 otherapp .\helmchart
+
 #explicit params (no ingress, no network policies, dynamic persistance, NodePort)
 helm install --set ingressEnabled=false,networkPoliciesEnabled=false,mysql.storageClass=,mongodb.storageClass=,rabbitmq.storageClass=,serviceType=NodePort  myapp .\helmchart
 

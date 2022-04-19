@@ -52,8 +52,8 @@ public class Eoloplant implements Serializable {
 
     public void processPlanning() {
         planning = planning.matches("^[A-Ma-m].*") ? 
-            planning.toLowerCase() : 
-            planning.toUpperCase();
+            planning.toUpperCase() :
+            planning.toLowerCase();
         advanceProgress();
     }
 

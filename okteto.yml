@@ -1,0 +1,44 @@
+name: cloudapps-pr17-helm
+
+# The build section defines how to build the images of your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#build
+build:
+
+  # You can use the following env vars to refer to this image in your deploy commands:
+  #  - OKTETO_BUILD_PLANNER-DEPLOY_REGISTRY: image registry
+  #  - OKTETO_BUILD_PLANNER-DEPLOY_REPOSITORY: image repo
+  #  - OKTETO_BUILD_PLANNER-DEPLOY_IMAGE: image name
+  #  - OKTETO_BUILD_PLANNER-DEPLOY_TAG: image tag
+  planner-deploy:
+    context: planner/
+    dockerfile: Dockerfile
+    image: ruskab/myplanner:v1.0
+
+# The deploy section defines how to deploy your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#deploy
+deploy:
+  - kubectl apply -f kubernetes
+  - kubectl rollout restart deploy planner-deploy
+
+# The dependencies section defines other git repositories to be deployed as part of your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#dependencies
+# dependencies:
+#   - https://github.com/okteto/sample
+
+
+# The dev section defines how to activate a development container
+# More info: https://www.okteto.com/docs/reference/manifest/#dev
+dev:
+  planner-deploy:
+    image: maven:3.8.4-openjdk-17
+    command:
+      - mvn
+      - spring-boot:run
+    workdir: /usr/src/app/planner/
+    securityContext:
+      runAsUser: 1001
+    sync:
+      - /planner:/usr/src/app/planner/
+    forward:
+      - 9229:9229
+      - 5005:5005

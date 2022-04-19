@@ -21,7 +21,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: planner
-        image: codeurjc/planner:v1.0
+        image: ruskab/myplanner:v1.0
         env:
         - name: TOPO_HOST
           value: toposervice-service
